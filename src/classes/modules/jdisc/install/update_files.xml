@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<isys>
+    <delete>
+        <!-- Removing unused wizard classes -->
+        <file>src/classes/modules/isys_module_jdisc.class.php</file>
+        <file>src/classes/ajax/handler/isys_module_jdisc.class.php</file>
+        <file>src/themes/default/smarty/templates/modules/jdisc/configuration.tpl</file>
+        <file>src/themes/default/smarty/templates/modules/jdisc/import.tpl</file>
+        <file>src/themes/default/smarty/templates/modules/jdisc/object_type_assignment.tpl</file>
+        <file>src/themes/default/smarty/templates/modules/jdisc/profiles.tpl</file>
+        <file>src/classes/ajax/handler/isys_ajax_handler_jdisc.class.php</file>
+
+        <!-- Removing directories (this will only work, when the directories are empty) -->
+        <dir>src/themes/default/smarty/templates/modules/jdisc</dir>
+
+    </delete>
+</isys>

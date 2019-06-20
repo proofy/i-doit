@@ -1,0 +1,24 @@
+#searchModule {
+    padding: 0;
+    margin: 0;
+    position: absolute;
+    top: 52px;
+    right: 100px;
+}
+
+#searchModule #searchWhat {
+    border: 1px #000000 solid;
+    padding: 0;
+    margin: 0;
+    height: 12px;
+    font-size: 9px;
+}
+
+#searchModule #searchGo {
+    vertical-align: top;
+    cursor: pointer;
+}
+
+.searchHighlight {
+    background-color: #fff77e;
+}

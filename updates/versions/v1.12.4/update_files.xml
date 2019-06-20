@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE isys [
+        <!ELEMENT isys (info|delete)*>
+        <!ELEMENT info (title|version|requirement|directory|revision|release)*>
+        <!ELEMENT title (#PCDATA)>
+        <!ELEMENT version (#PCDATA)>
+        <!ELEMENT requirement (revision|version)*>
+        <!ELEMENT revision (#PCDATA)>
+        <!ELEMENT directory (#PCDATA)>
+        <!ELEMENT release (#PCDATA)>
+        <!ELEMENT delete (file|dir)*>
+        <!ELEMENT file (#PCDATA)>
+        <!ELEMENT dir (#PCDATA)>
+        ]>
+<isys>
+    <info>
+        <title>i-doit v1.12.4</title>
+        <version>1.12.4</version>
+        <requirement>
+            <revision>201811200</revision>
+            <version>1.12</version>
+        </requirement>
+        <directory>v1.12.4</directory>
+        <!--
+        LF: Changed this to: <year>1<major><minor> with major and minor beeing a two digit number:
+        201711000 => 2017 1.10.00
+        201811221 => 2018 1.12.21
+        ...
+        -->
+        <revision>201911204</revision>
+        <release>2019-05-20</release>
+    </info>
+    <delete>
+
+        <file>src/themes/default/smarty/templates/content/modules.tpl</file>
+        <file>src/classes/modules/isys_module_template.class.php</file>
+
+        <!-- Remove old "script" files -->
+        <file>imports/scripts/autoimport.sh</file>
+        <file>imports/scripts/autoimport-cmdb.sh</file>
+
+        <!-- Remove old D3 -->
+        <file>src/tools/js/d3/d3-v5.7.0-min.js</file>
+
+    </delete>
+</isys>

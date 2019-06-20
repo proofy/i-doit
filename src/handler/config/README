@@ -1,0 +1,67 @@
+--------------------------------------------------------------------------------------------------
+Handler Konfiguration: (DE)
+--------------------------------------------------------------------------------------------------
+
+Manche handler müssen sich automatisiert einloggen, um bestimmte aktionen in i-doit auszuführen.
+Um die nötigen Berechtigungen zu gewährleisten, ist es erforderlich die entsprechenden Login
+Informationen zu Konfigurieren. Dies geschieht über die so genannten Handler configs. Sie liegen
+im Verzeichnis src/handler/config und heissen "handlerklasse.inc.php". Beispiele solcher Handlerconfigs
+befinden sich im Verzeichnis src/handler/config/examples.
+
+Um beispielsweise die Workflow Benachrichtigungen zu konfigurieren, sollte wie folgt vorgegangen werden:
+
+1. Config Beispiel von src/handler/config/examples/isys_handler_workflow.inc.php nach src/handler/config
+   kopieren.
+2. Datei editieren, so dass die Konfiguration einen Login fähigen Admin Benutzer für den entsprechenden
+   Mandanten enthält:
+
+ define("C__HANDLER__WORKFLOW", 1);
+ $g_userconf = array(
+ 	"user"			=> "admin",
+ 	"pass"			=> "admin",
+ 	"mandator_id"	=> 1
+ );
+
+ Die Mandanten benötigte ID erhält man über das Handler Modul "mandator" ("./mandator ls" oder
+ "php.exe controller.php -v -m mandator ls") oder in der i-doit Verwaltungsoberfläche für Mandanten.
+
+3. Handler Modul aus dem i-doit Root ausführen (Pfade entsprechend anpassen):
+	Unix:     ./controller -v -m workflow
+	Windows:  C:\Programme\PHP\php.exe "C:/Programme/Apache Software Foundation/Apache2.2/htdocs/i-doit/controller.php" -v -m workflow
+
+	Der Parameter -v steht für den Verbose Mode, also erweiterte Ausgabemeldungen.
+	Mit -m lädt man das gewünschte Modul.
+
+Weitere informationen hierzu im i-doit Handbuch.
+
+--------------------------------------------------------------------------------------------------
+Handler configuration: (EN)
+--------------------------------------------------------------------------------------------------
+
+For a handler, which needs to login automatically, there must be a handler config inside
+src/handler/config/ called "handlerclass.inc.php". Handler-config examples are located
+in src/handler/config/examples/. For using one of the configs, just copy it into the
+config directory.
+
+Example (Workflow notification handler):
+1. Copy the file src/handler/config/examples/isys_handler_workflow.inc.php to src/handler/config/
+2. Edit the file and setup your i-doit login information, e.g.:
+
+ define("C__HANDLER__WORKFLOW", 1);
+ $g_userconf = array(
+ 	"user"			=> "admin",
+ 	"pass"			=> "admin",
+ 	"mandator_id"	=> 1
+ );
+
+ For using the mandator ID: 1 with the admin/admin login. To retrieve the mandator id, you can
+ either use the unix command line script "./mandator ls" in the i-doit root, or navigate to
+ "system -> mandator" in the web interface. The user and password should be any admin account
+ of the i-doit system.
+
+3. Start the handler module (Paths should be customized):
+	Unix:     ./controller -v -m workflow
+	Windows:  C:\Programme\PHP\php.exe "C:/Programme/Apache Software Foundation/Apache2.2/htdocs/i-doit/controller.php" -m workflow
+
+Note: If you don't want to configure the handler, it is also possible to log in via parameters
+like this: ./controller -u admin -p admin -i 1 -v -m workflow

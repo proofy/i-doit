@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE isys [
+        <!ELEMENT isys (info|queries)*>
+        <!ELEMENT info (title|version|requirement|directory|revision|release)*>
+        <!ELEMENT title (#PCDATA)>
+        <!ELEMENT version (#PCDATA)>
+        <!ELEMENT requirement (revision|version)*>
+        <!ELEMENT revision (#PCDATA)>
+        <!ELEMENT directory (#PCDATA)>
+        <!ELEMENT release (#PCDATA)>
+        <!ELEMENT queries (query)*>
+        <!ELEMENT query (id|title|check|errmsg|sql)*>
+        <!ELEMENT id (#PCDATA)>
+        <!ELEMENT check (#PCDATA)>
+        <!ATTLIST check ident CDATA #REQUIRED>
+        <!ELEMENT errmsg (#PCDATA)>
+        <!ELEMENT sql (exec)*>
+        <!ELEMENT exec (#PCDATA)>
+        <!ATTLIST exec ident CDATA #REQUIRED>
+        ]>
+<isys>
+    <info>
+        <title>i-doit v1.12.4</title>
+        <version>1.12.4</version>
+        <requirement>
+            <revision>201811200</revision>
+            <version>1.12</version>
+        </requirement>
+        <directory>v1.12.4</directory>
+        <!--
+        LF: Changed this to: <year>1<major><minor> with major and minor beeing a two digit number:
+        201711000 => 2017 1.10.00
+        201811221 => 2018 1.12.21
+        ...
+        -->
+        <revision>201911204</revision>
+        <release>2019-05-20</release>
+    </info>
+    <queries>
+
+        <query>
+            <title>Add rights for "object browser" configuration to administrators.</title>
+            <check ident="C_VALUE_EXISTS">SELECT isys_auth__id
+                FROM isys_auth
+                INNER JOIN isys_module ON isys_module__id = isys_auth__isys_module__id
+                WHERE isys_auth__path LIKE 'OBJECT_BROWSER_CONFIGURATION%'
+                AND isys_module__const = 'C__MODULE__CMDB'
+                LIMIT 1;
+            </check>
+            <sql>
+                <exec ident="false">
+                    SET @CMDB = (SELECT isys_module__id FROM isys_module WHERE isys_module__const = 'C__MODULE__CMDB' LIMIT 1);
+                    SET @ADMINGROUP = (SELECT isys_obj__id FROM isys_obj WHERE isys_obj__const = 'C__OBJ__PERSON_GROUP_ADMIN' LIMIT 1);
+
+                    INSERT INTO isys_auth SET
+                    isys_auth__isys_obj__id = @ADMINGROUP,
+                    isys_auth__type = 7,
+                    isys_auth__isys_module__id = @CMDB,
+                    isys_auth__path = 'OBJECT_BROWSER_CONFIGURATION',
+                    isys_auth__status = 2;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <title>Adding option for enabling ldap paging</title>
+            <check ident="C_ADD_FIELD">isys_ldap, isys_ldap__enable_paging</check>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_ldap ADD isys_ldap__enable_paging tinyint(1) UNSIGNED NULL DEFAULT 0;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <title>Adding option for ldap page limit</title>
+            <check ident="C_ADD_FIELD">isys_ldap, isys_ldap__page_limit</check>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_ldap ADD isys_ldap__page_limit int(10) UNSIGNED NULL DEFAULT 500;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <title>Adding authorization rules for CSV import profiles</title>
+            <check ident="C_VALUE_EXISTS">
+                SELECT isys_auth__id
+                FROM isys_auth
+                WHERE isys_auth__isys_module__id = (SELECT isys_module__id FROM isys_module WHERE isys_module__const = 'C__MODULE__IMPORT' LIMIT 1)
+                AND isys_auth__path = 'CSV_IMPORT_PROFILES'
+                LIMIT 1;
+            </check>
+            <sql>
+                <exec ident="false">
+                    INSERT INTO isys_auth SET
+                    isys_auth__isys_obj__id = (SELECT isys_obj__id FROM isys_obj WHERE isys_obj__const = 'C__OBJ__PERSON_GROUP_ADMIN' LIMIT 1),
+                    isys_auth__isys_module__id = (SELECT isys_module__id FROM isys_module WHERE isys_module__const = 'C__MODULE__IMPORT' LIMIT 1),
+                    isys_auth__type = 39,
+                    isys_auth__path = 'CSV_IMPORT_PROFILES',
+                    isys_auth__status = 2;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <title>Changing class for specific category "Middleware"</title>
+            <check ident="C_VALUE_EXISTS">
+                SELECT isysgui_cats__id FROM isysgui_cats WHERE isysgui_cats__const = 'C__CATS__MIDDLEWARE' AND isysgui_cats__class_name = 'isys_cmdb_dao_category_s_application' LIMIT 1;
+            </check>
+            <sql>
+                <exec ident="true">
+                    UPDATE isysgui_cats SET isysgui_cats__class_name = 'isys_cmdb_dao_category_s_middleware'
+                    WHERE isysgui_cats__const = 'C__CATS__MIDDLEWARE';
+                </exec>
+            </sql>
+        </query>
+
+    </queries>
+</isys>

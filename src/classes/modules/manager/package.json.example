@@ -1,0 +1,33 @@
+{
+    "name":         "Module Manager",
+    "identifier":   "manager",
+    "licence":      "http://www.gnu.org/licenses/agpl-3.0.html GNU AGPLv3",
+    "author":       "Synetics GmbH",
+    "version":      "1.1",
+    "description":  "i-doit's Module Manager",
+    "files":        [
+        "controller/",
+        "dao/",
+        "handler/",
+        "handler/ajax/",
+        "handler/controller/",
+        "images/",
+        "ui/",
+        "view/",
+        "templates/",
+        "isys_module_manager.class.php",
+        "isys_module_manager_autoload.class.php",
+        "init.php"
+    ],
+    "icons":        {
+        "16": "images/core16.png",
+        "64": "images/core64.png"
+    },
+    "sql-tables":   [],
+    "requirements": {
+        "core": ">= 1.0"
+    },
+    "dependencies": {
+        "php":   ["json", "mysqli", "spl"]
+    }
+}

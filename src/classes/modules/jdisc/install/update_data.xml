@@ -1,0 +1,932 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<isys>
+	<queries>
+
+		<query>
+			<id>2</id>
+			<check ident="C_CREATE_TABLE">isys_jdisc_db</check>
+			<errmsg></errmsg>
+			<sql>
+				<exec ident="false">
+                    CREATE TABLE IF NOT EXISTS `isys_jdisc_db` (
+                        `isys_jdisc_db__id` INT ( 10 ) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                        `isys_jdisc_db__host` VARCHAR (255) NOT NULL,
+                        `isys_jdisc_db__port` INT ( 10 ) UNSIGNED NOT NULL,
+                        `isys_jdisc_db__database` VARCHAR (255) NOT NULL,
+                        `isys_jdisc_db__username` VARCHAR (255) NOT NULL,
+                        `isys_jdisc_db__password` VARCHAR (255) NOT NULL
+                    ) ENGINE = INNODB;
+                </exec>
+			</sql>
+		</query>
+
+		<query>
+			<id>3</id>
+			<check ident="C_CREATE_TABLE">isys_jdisc_profile</check>
+			<errmsg></errmsg>
+			<sql>
+				<exec ident="false">
+                    CREATE TABLE IF NOT EXISTS `isys_jdisc_profile` (
+                        `isys_jdisc_profile__id` INT ( 10 ) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                        `isys_jdisc_profile__title` VARCHAR( 255 ) NOT NULL,
+                        `isys_jdisc_profile__description` TEXT NULL DEFAULT NULL,
+                        `isys_jdisc_profile__import_all_software` TINYINT ( 1 ) UNSIGNED NULL DEFAULT NULL,
+                        `isys_jdisc_profile__import_all_networks` TINYINT ( 1 ) UNSIGNED NULL DEFAULT NULL
+                    ) ENGINE = INNODB;
+                </exec>
+			</sql>
+		</query>
+
+		<query>
+			<id>4</id>
+			<check ident="C_CREATE_TABLE">isys_jdisc_object_type_assignment</check>
+			<errmsg></errmsg>
+			<sql>
+				<exec ident="false">
+                    CREATE TABLE IF NOT EXISTS `isys_jdisc_object_type_assignment` (
+                        `isys_jdisc_object_type_assignment__id` INT ( 10 ) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                        `isys_jdisc_object_type_assignment__isys_jdisc_profile__id` INT ( 10 ) UNSIGNED NOT NULL,
+                        `isys_jdisc_object_type_assignment__jdisc_type` INT ( 10 ) UNSIGNED NULL,
+                        `isys_jdisc_object_type_assignment__jdisc_os` INT ( 10 ) UNSIGNED NULL,
+                        `isys_jdisc_object_type_assignment__isys_obj_type__id` INT ( 10 ) UNSIGNED NULL
+                    ) ENGINE = INNODB;
+                </exec>
+			</sql>
+		</query>
+
+        <query>
+            <id>5</id>
+            <title>Add category selection to JDisc profiles.</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_profile, isys_jdisc_profile__categories</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE `isys_jdisc_profile` ADD `isys_jdisc_profile__categories` VARCHAR( 255 ) NOT NULL AFTER `isys_jdisc_profile__description`;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>6</id>
+            <title>Add customized object assignments to JDisc profiles.</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_object_type_assignment, isys_jdisc_object_type_assignment__jdisc_type_customized</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE `isys_jdisc_object_type_assignment`
+                    ADD `isys_jdisc_object_type_assignment__jdisc_type_customized` VARCHAR( 255 ) NULL AFTER `isys_jdisc_object_type_assignment__jdisc_type`,
+                    ADD `isys_jdisc_object_type_assignment__jdisc_os_customized` VARCHAR( 255 ) NULL AFTER `isys_jdisc_object_type_assignment__jdisc_os`
+                </exec>
+            </sql>
+        </query>
+
+		<query>
+			<id>7</id>
+			<title>Define Standard Profile</title>
+			<check ident="C_VALUE_EXISTS">
+				SELECT isys_jdisc_profile__id
+				FROM isys_jdisc_profile
+				WHERE isys_jdisc_profile__title = 'Complete import';
+			</check>
+			<errmsg></errmsg>
+			<sql>
+				<exec ident="false">
+                    INSERT INTO `isys_jdisc_profile` SET
+                        `isys_jdisc_profile__title` = 'Complete import',
+                        `isys_jdisc_profile__categories` = 'a:10:{i:0;i:4;i:1;i:35;i:2;i:47;i:3;i:42;i:4;i:8;i:5;i:2;i:6;i:39;i:7;i:12;i:8;i:5;i:9;i:36;}',
+                        `isys_jdisc_profile__import_all_software` = 1,
+                        `isys_jdisc_profile__import_all_networks` = 1;
+
+                    SET @PROFILE = (SELECT LAST_INSERT_ID());
+
+                    SET @C__OBJTYPE__ACCESS_POINT = (SELECT `isys_obj_type__id` FROM `isys_obj_type` WHERE `isys_obj_type__const` = 'C__OBJTYPE__ACCESS_POINT');
+                    SET @C__OBJTYPE__APPLIANCE = (SELECT `isys_obj_type__id` FROM `isys_obj_type` WHERE `isys_obj_type__const` = 'C__OBJTYPE__APPLIANCE');
+                    SET @C__OBJTYPE__ENCLOSURE = (SELECT `isys_obj_type__id` FROM `isys_obj_type` WHERE `isys_obj_type__const` = 'C__OBJTYPE__ENCLOSURE');
+                    SET @C__OBJTYPE__CLIENT = (SELECT `isys_obj_type__id` FROM `isys_obj_type` WHERE `isys_obj_type__const` = 'C__OBJTYPE__CLIENT');
+                    SET @C__OBJTYPE__CLUSTER_SERVICE = (SELECT `isys_obj_type__id` FROM `isys_obj_type` WHERE `isys_obj_type__const` = 'C__OBJTYPE__CLUSTER_SERVICE');
+                    SET @C__OBJTYPE__SERVER = (SELECT `isys_obj_type__id` FROM `isys_obj_type` WHERE `isys_obj_type__const` = 'C__OBJTYPE__SERVER');
+                    SET @C__OBJTYPE__VIRTUAL_HOST = (SELECT `isys_obj_type__id` FROM `isys_obj_type` WHERE `isys_obj_type__const` = 'C__OBJTYPE__VIRTUAL_HOST');
+                    SET @C__OBJTYPE__VIRTUAL_SERVER = (SELECT `isys_obj_type__id` FROM `isys_obj_type` WHERE `isys_obj_type__const` = 'C__OBJTYPE__VIRTUAL_SERVER');
+                    SET @C__OBJTYPE__VIRTUAL_CLIENT = (SELECT `isys_obj_type__id` FROM `isys_obj_type` WHERE `isys_obj_type__const` = 'C__OBJTYPE__VIRTUAL_CLIENT');
+                    SET @C__OBJTYPE__UPS = (SELECT `isys_obj_type__id` FROM `isys_obj_type` WHERE `isys_obj_type__const` = 'C__OBJTYPE__UPS');
+                    SET @C__OBJTYPE__PHONE = (SELECT `isys_obj_type__id` FROM `isys_obj_type` WHERE `isys_obj_type__const` = 'C__OBJTYPE__PHONE');
+                    SET @C__OBJTYPE__AMPLIFIER = (SELECT `isys_obj_type__id` FROM `isys_obj_type` WHERE `isys_obj_type__const` = 'C__OBJTYPE__AMPLIFIER');
+                    SET @C__OBJTYPE__PDU = (SELECT `isys_obj_type__id` FROM `isys_obj_type` WHERE `isys_obj_type__const` = 'C__OBJTYPE__PDU');
+                    SET @C__OBJTYPE__SAN = (SELECT `isys_obj_type__id` FROM `isys_obj_type` WHERE `isys_obj_type__const` = 'C__OBJTYPE__SAN');
+                    SET @C__OBJTYPE__SWITCH = (SELECT `isys_obj_type__id` FROM `isys_obj_type` WHERE `isys_obj_type__const` = 'C__OBJTYPE__SWITCH');
+                    SET @C__OBJTYPE__TELEPHONE_SYSTEM = (SELECT `isys_obj_type__id` FROM `isys_obj_type` WHERE `isys_obj_type__const` = 'C__OBJTYPE__TELEPHONE_SYSTEM');
+                    SET @C__OBJTYPE__MONITOR = (SELECT `isys_obj_type__id` FROM `isys_obj_type` WHERE `isys_obj_type__const` = 'C__OBJTYPE__MONITOR');
+                    SET @C__OBJTYPE__PRINTER = (SELECT `isys_obj_type__id` FROM `isys_obj_type` WHERE `isys_obj_type__const` = 'C__OBJTYPE__PRINTER');
+                    SET @C__OBJTYPE__ROUTER = (SELECT `isys_obj_type__id` FROM `isys_obj_type` WHERE `isys_obj_type__const` = 'C__OBJTYPE__ROUTER');
+                    SET @C__OBJTYPE__FC_SWITCH = (SELECT `isys_obj_type__id` FROM `isys_obj_type` WHERE `isys_obj_type__const` = 'C__OBJTYPE__FC_SWITCH');
+
+                    INSERT INTO `isys_jdisc_object_type_assignment` (
+                        `isys_jdisc_object_type_assignment__isys_jdisc_profile__id`,
+                        `isys_jdisc_object_type_assignment__jdisc_type`,
+                        `isys_jdisc_object_type_assignment__jdisc_type_customized`,
+                        `isys_jdisc_object_type_assignment__jdisc_os`,
+                        `isys_jdisc_object_type_assignment__jdisc_os_customized`,
+                        `isys_jdisc_object_type_assignment__isys_obj_type__id`
+                    ) VALUES
+                        (@PROFILE, 6, '', NULL, '', @C__OBJTYPE__ACCESS_POINT),
+                        (@PROFILE, 8, '', NULL, '', NULL),
+                        (@PROFILE, 500, '', NULL, '', @C__OBJTYPE__APPLIANCE),
+                        (@PROFILE, 159, '', NULL, '', @C__OBJTYPE__APPLIANCE),
+                        (@PROFILE, 251, '', NULL, '', @C__OBJTYPE__ENCLOSURE),
+                        (@PROFILE, 11, '', NULL, '', NULL),
+                        (@PROFILE, 51, '', NULL, '', @C__OBJTYPE__CLIENT),
+                        (@PROFILE, 1000, '', NULL, '', @C__OBJTYPE__CLUSTER_SERVICE),
+                        (@PROFILE, 50, '', NULL, '', NULL),
+                        (@PROFILE, 50, '', NULL, '*Windows XP*', @C__OBJTYPE__CLIENT),
+                        (@PROFILE, 50, '', NULL, '*Windows 7*', @C__OBJTYPE__CLIENT),
+                        (@PROFILE, 50, '', NULL, '*Windows Server*', @C__OBJTYPE__SERVER),
+                        (@PROFILE, 50, '', NULL, '*IOS*', @C__OBJTYPE__ROUTER),
+                        (@PROFILE, 50, '', NULL, '*VMware*', @C__OBJTYPE__VIRTUAL_HOST),
+                        (@PROFILE, 50, '', NULL, '*Linux*', @C__OBJTYPE__SERVER),
+                        (@PROFILE, 50, '', NULL, '*Debian*', @C__OBJTYPE__SERVER),
+                        (@PROFILE, 50, '', NULL, '*Ubuntu*', @C__OBJTYPE__SERVER),
+                        (@PROFILE, 50, '', NULL, '*Redhat*', @C__OBJTYPE__SERVER),
+                        (@PROFILE, 50, '', NULL, '*SuSE*', @C__OBJTYPE__SERVER),
+                        (@PROFILE, 10, '', NULL, '', NULL),
+                        (@PROFILE, 15, '', NULL, '', @C__OBJTYPE__SERVER),
+                        (@PROFILE, 14, '', NULL, '', @C__OBJTYPE__SWITCH),
+                        (@PROFILE, 60, '', NULL, '', NULL),
+                        (@PROFILE, 55, '', NULL, '', @C__OBJTYPE__CLIENT),
+                        (@PROFILE, 107, '', NULL, '', NULL),
+                        (@PROFILE, 156, '', NULL, '', NULL),
+                        (@PROFILE, 161, '', NULL, '', NULL),
+                        (@PROFILE, 103, '', NULL, '', NULL),
+                        (@PROFILE, 155, '', NULL, '', NULL),
+                        (@PROFILE, 154, '', NULL, '', NULL),
+                        (@PROFILE, 164, '', NULL, '', NULL),
+                        (@PROFILE, 163, '', NULL, '', NULL),
+                        (@PROFILE, 152, '', NULL, '', NULL),
+                        (@PROFILE, 153, '', NULL, '', @C__OBJTYPE__FC_SWITCH),
+                        (@PROFILE, 165, '', NULL, '', @C__OBJTYPE__FC_SWITCH),
+                        (@PROFILE, 5, '', NULL, '', @C__OBJTYPE__ROUTER),
+                        (@PROFILE, 9, '', NULL, '', @C__OBJTYPE__ROUTER),
+                        (@PROFILE, 76, '', NULL, '', @C__OBJTYPE__VIRTUAL_SERVER),
+                        (@PROFILE, 1, '', NULL, '', NULL),
+                        (@PROFILE, 77, '', NULL, '', @C__OBJTYPE__VIRTUAL_SERVER),
+                        (@PROFILE, 100, '', NULL, '', @C__OBJTYPE__PRINTER),
+                        (@PROFILE, 19, '', NULL, '', @C__OBJTYPE__SWITCH),
+                        (@PROFILE, 20, '', NULL, '', @C__OBJTYPE__SWITCH),
+                        (@PROFILE, 800, '', NULL, '', NULL),
+                        (@PROFILE, 801, '', NULL, '', NULL),
+                        (@PROFILE, 201, '', NULL, '', @C__OBJTYPE__PHONE),
+                        (@PROFILE, 200, '', NULL, '', @C__OBJTYPE__PHONE),
+                        (@PROFILE, 202, '', NULL, '', @C__OBJTYPE__TELEPHONE_SYSTEM),
+                        (@PROFILE, 79, '', NULL, '', @C__OBJTYPE__VIRTUAL_SERVER),
+                        (@PROFILE, 56, '', NULL, '', @C__OBJTYPE__CLIENT),
+                        (@PROFILE, 75, '', NULL, '', NULL),
+                        (@PROFILE, 250, '', NULL, '', NULL),
+                        (@PROFILE, 61, '', NULL, '', @C__OBJTYPE__SERVER),
+                        (@PROFILE, 72, '', NULL, '', @C__OBJTYPE__VIRTUAL_SERVER),
+                        (@PROFILE, 58, '', NULL, '', @C__OBJTYPE__CLIENT),
+                        (@PROFILE, 7, '', NULL, '', NULL),
+                        (@PROFILE, 700, '', NULL, '', @C__OBJTYPE__MONITOR),
+                        (@PROFILE, 105, '', NULL, '', NULL),
+                        (@PROFILE, 168, '', NULL, '', @C__OBJTYPE__SAN),
+                        (@PROFILE, NULL, '', NULL, '', NULL),
+                        (@PROFILE, 83, '', NULL, '', @C__OBJTYPE__VIRTUAL_SERVER),
+                        (@PROFILE, 57, '', NULL, '', @C__OBJTYPE__CLIENT),
+                        (@PROFILE, 352, '', NULL, '', @C__OBJTYPE__PDU),
+                        (@PROFILE, 86, '', NULL, '', @C__OBJTYPE__SERVER),
+                        (@PROFILE, 13, '', NULL, '', @C__OBJTYPE__SERVER),
+                        (@PROFILE, 350, '', NULL, '', @C__OBJTYPE__UPS),
+                        (@PROFILE, 353, '', NULL, '', @C__OBJTYPE__UPS),
+                        (@PROFILE, 354, '', NULL, '', @C__OBJTYPE__UPS),
+                        (@PROFILE, 104, '', NULL, '', @C__OBJTYPE__SERVER),
+                        (@PROFILE, 503, '', NULL, '', @C__OBJTYPE__APPLIANCE),
+                        (@PROFILE, 101, '', NULL, '', @C__OBJTYPE__PRINTER),
+                        (@PROFILE, 106, '', NULL, '', @C__OBJTYPE__MONITOR),
+                        (@PROFILE, 400, '', NULL, '', @C__OBJTYPE__ENCLOSURE),
+                        (@PROFILE, 12, '', NULL, '', @C__OBJTYPE__AMPLIFIER),
+                        (@PROFILE, 2, '', NULL, '', @C__OBJTYPE__ROUTER),
+                        (@PROFILE, 4, '', NULL, '', @C__OBJTYPE__SWITCH),
+                        (@PROFILE, 102, '', NULL, '', NULL),
+                        (@PROFILE, 501, '', NULL, '', @C__OBJTYPE__APPLIANCE),
+                        (@PROFILE, 166, '', NULL, '', @C__OBJTYPE__SWITCH),
+                        (@PROFILE, 167, '', NULL, '', @C__OBJTYPE__SWITCH),
+                        (@PROFILE, 52, '', NULL, '', @C__OBJTYPE__SERVER),
+                        (@PROFILE, 54, '', NULL, '', @C__OBJTYPE__SERVER),
+                        (@PROFILE, 70, '', NULL, '', @C__OBJTYPE__SERVER),
+                        (@PROFILE, 53, '', NULL, '', @C__OBJTYPE__SERVER),
+                        (@PROFILE, 71, '', NULL, '', @C__OBJTYPE__SERVER),
+                        (@PROFILE, 17, '', NULL, '', @C__OBJTYPE__SWITCH),
+                        (@PROFILE, 18, '', NULL, '', @C__OBJTYPE__SWITCH),
+                        (@PROFILE, 1002, '', NULL, '', NULL),
+                        (@PROFILE, 85, '', NULL, '', NULL),
+                        (@PROFILE, 74, '', NULL, '', NULL),
+                        (@PROFILE, 150, '', NULL, '', @C__OBJTYPE__SAN),
+                        (@PROFILE, 160, '', NULL, '', @C__OBJTYPE__SAN),
+                        (@PROFILE, 3, '', NULL, '', @C__OBJTYPE__SWITCH),
+                        (@PROFILE, 16, '', NULL, '', @C__OBJTYPE__SWITCH),
+                        (@PROFILE, 157, '', NULL, '', @C__OBJTYPE__SAN),
+                        (@PROFILE, 162, '', NULL, '', @C__OBJTYPE__SAN),
+                        (@PROFILE, 151, '', NULL, '', @C__OBJTYPE__SAN),
+                        (@PROFILE, 66, '', NULL, '', @C__OBJTYPE__CLIENT),
+                        (@PROFILE, 62, '', NULL, '', @C__OBJTYPE__SERVER),
+                        (@PROFILE, 73, '', NULL, '', @C__OBJTYPE__CLIENT),
+                        (@PROFILE, 59, '', NULL, '', @C__OBJTYPE__CLIENT),
+                        (@PROFILE, 300, '', NULL, '', NULL),
+                        (@PROFILE, 301, '', NULL, '', NULL),
+                        (@PROFILE, 302, '', NULL, '', NULL),
+                        (@PROFILE, 351, '', NULL, '', @C__OBJTYPE__UPS),
+                        (@PROFILE, 1001, '', NULL, '', @C__OBJTYPE__CLUSTER_SERVICE),
+                        (@PROFILE, 600, '', NULL, '', @C__OBJTYPE__PHONE),
+                        (@PROFILE, 602, '', NULL, '', @C__OBJTYPE__PHONE),
+                        (@PROFILE, 601, '', NULL, '', @C__OBJTYPE__PHONE),
+                        (@PROFILE, 68, '', NULL, '', @C__OBJTYPE__VIRTUAL_CLIENT),
+                        (@PROFILE, 82, '', NULL, '', @C__OBJTYPE__VIRTUAL_SERVER),
+                        (@PROFILE, 81, '', NULL, '', @C__OBJTYPE__VIRTUAL_CLIENT),
+                        (@PROFILE, 69, '', NULL, '', @C__OBJTYPE__VIRTUAL_SERVER),
+                        (@PROFILE, 80, '', NULL, '', @C__OBJTYPE__APPLIANCE),
+                        (@PROFILE, 505, '', NULL, '', @C__OBJTYPE__APPLIANCE),
+                        (@PROFILE, 502, '', NULL, '', @C__OBJTYPE__APPLIANCE),
+                        (@PROFILE, 504, '', NULL, '', @C__OBJTYPE__APPLIANCE),
+                        (@PROFILE, 63, '', NULL, '', @C__OBJTYPE__CLIENT),
+                        (@PROFILE, 84, '', NULL, '', @C__OBJTYPE__CLIENT),
+                        (@PROFILE, 67, '', NULL, '', @C__OBJTYPE__CLIENT),
+                        (@PROFILE, 78, '', NULL, '', @C__OBJTYPE__VIRTUAL_SERVER);
+                </exec>
+			</sql>
+		</query>
+
+        <query>
+            <id>8</id>
+            <title>Adding new field in jdisc configuration</title>
+            <check ident="C_ADD_FIELD_IF_TABLE_EXISTS">isys_jdisc_db, isys_jdisc_db__version_check</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_db
+                    ADD isys_jdisc_db__version_check TINYINT(1) NULL DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>9</id>
+            <title>Adding field: for port filter</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_object_type_assignment, isys_jdisc_object_type_assignment__port_filter</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_object_type_assignment ADD isys_jdisc_object_type_assignment__port_filter TEXT NULL DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>10</id>
+            <title>Adding field: for port filter type</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_object_type_assignment, isys_jdisc_object_type_assignment__port_filter_type</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_object_type_assignment ADD isys_jdisc_object_type_assignment__port_filter_type TEXT NULL DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>11</id>
+            <title>Adding field: cluster import</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_profile, isys_jdisc_profile__import_all_clusters</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_profile ADD isys_jdisc_profile__import_all_clusters TINYINT ( 1 ) UNSIGNED NULL DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>12</id>
+            <title>Adding field: blade chassis connection import</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_profile, isys_jdisc_profile__import_all_blade_connections</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_profile ADD isys_jdisc_profile__import_all_blade_connections TINYINT ( 1 ) UNSIGNED NULL DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>13</id>
+            <title>Adding field: default server indicator</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_db, isys_jdisc_db__default_server</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_db ADD isys_jdisc_db__default_server TINYINT ( 1 ) UNSIGNED NULL DEFAULT 0;
+                    UPDATE isys_jdisc_db SET isys_jdisc_db__default_server = 1;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>14</id>
+            <title>Adding field: jdisc server identificator in profile table</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_profile, isys_jdisc_profile__jdisc_server</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_profile ADD isys_jdisc_profile__jdisc_server INT ( 10 ) UNSIGNED NULL DEFAULT NULL;
+                    ALTER TABLE `isys_jdisc_profile` ADD FOREIGN KEY ( `isys_jdisc_profile__jdisc_server` ) REFERENCES `isys_jdisc_db` (`isys_jdisc_db__id`) ON DELETE SET NULL ON UPDATE NO ACTION;
+                    SET @JDISCDB = (SELECT isys_jdisc_db__id FROM isys_jdisc_db WHERE isys_jdisc_db__default_server = 1);
+                    UPDATE isys_jdisc_profile SET isys_jdisc_profile__jdisc_server = @JDISCDB;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>15</id>
+            <title>Update Standard Profile</title>
+            <check ident="C_VALUE_EXISTS">
+                SELECT isys_jdisc_profile__id
+                FROM isys_jdisc_profile
+                WHERE isys_jdisc_profile__title = 'Standard';
+            </check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="true">
+                    UPDATE isys_jdisc_profile SET
+                        isys_jdisc_profile__import_all_blade_connections = 1,
+                        isys_jdisc_profile__import_all_clusters = 1
+                    WHERE isys_jdisc_profile__title = 'Standard';
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>16</id>
+            <title>Adding field: jdisc custom attributes identificator in profile table</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_profile, isys_jdisc_profile__import_custom_attributes</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_profile ADD isys_jdisc_profile__import_custom_attributes TINYINT ( 1 ) UNSIGNED NULL DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>17</id>
+            <check ident="C_CREATE_TABLE">isys_jdisc_ca_type</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    CREATE TABLE IF NOT EXISTS `isys_jdisc_ca_type` (
+                    `isys_jdisc_ca_type__id` INT ( 10 ) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                    `isys_jdisc_ca_type__title` VARCHAR (255) NOT NULL,
+                    `isys_jdisc_ca_type__const` VARCHAR (255) NOT NULL,
+                    `isys_jdisc_ca_type__sort` INT(10)  UNSIGNED NULL DEFAULT NULL,
+                    `isys_jdisc_ca_type__status` INT(10)  UNSIGNED NULL DEFAULT 2,
+                    `isys_jdisc_ca_type__property` INT(10)  UNSIGNED NULL DEFAULT NULL,
+                    `isys_jdisc_ca_type__description` TEXT collate utf8_unicode_ci NULL DEFAULT NULL
+                    ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+                    INSERT INTO isys_jdisc_ca_type (isys_jdisc_ca_type__title, isys_jdisc_ca_type__const, isys_jdisc_ca_type__sort, isys_jdisc_ca_type__status, isys_jdisc_ca_type__description)
+                    VALUES('LC__CATG__JDISC__CUSTOM_ATTRIBUTES_TYPE__TEXT', 'C__JDISC__CA_TYPE__TEXT', 1, 2, 'Text'),
+                    ('LC__CATG__JDISC__CUSTOM_ATTRIBUTES_TYPE__MULTITEXT', 'C__JDISC__CA_TYPE__MULTITEXT', 2, 2, 'Multiline text'),
+                    ('LC__CATG__JDISC__CUSTOM_ATTRIBUTES_TYPE__INTEGER', 'C__JDISC__CA_TYPE__INTEGER', 3, 2, 'Integer'),
+                    ('LC__CATG__JDISC__CUSTOM_ATTRIBUTES_TYPE__DATE', 'C__JDISC__CA_TYPE__DATE', 4, 2, 'Date'),
+                    ('LC__CATG__JDISC__CUSTOM_ATTRIBUTES_TYPE__TIME', 'C__JDISC__CA_TYPE__TIME', 5, 2, 'Time'),
+                    ('LC__CATG__JDISC__CUSTOM_ATTRIBUTES_TYPE__ENUMERATION', 'C__JDISC__CA_TYPE__ENUMERATION', 6, 2, 'Enumeration'),
+                    ('LC__CATG__JDISC__CUSTOM_ATTRIBUTES_TYPE__CURRENCY', 'C__JDISC__CA_TYPE__CURRENCY', 7, 2, 'Currency'),
+                    ('LC__CATG__JDISC__CUSTOM_ATTRIBUTES_TYPE__DOCUMENT', 'C__JDISC__CA_TYPE__DOCUMENT', 8, 2, 'Document');
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>17</id>
+            <check ident="C_CREATE_TABLE">isys_catg_jdisc_ca_list</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    CREATE TABLE IF NOT EXISTS `isys_catg_jdisc_ca_list` (
+                    `isys_catg_jdisc_ca_list__id` INT ( 10 ) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                    `isys_catg_jdisc_ca_list__isys_obj__id` INT ( 10 ) UNSIGNED NOT NULL,
+                    `isys_catg_jdisc_ca_list__title` VARCHAR (255) NOT NULL,
+                    `isys_catg_jdisc_ca_list__content` TEXT collate utf8_unicode_ci NULL DEFAULT NULL,
+                    `isys_catg_jdisc_ca_list__folder` VARCHAR (255) NOT NULL,
+                    `isys_catg_jdisc_ca_list__isys_jdisc_ca_type__id` INT ( 10 ) UNSIGNED NOT NULL,
+                    `isys_catg_jdisc_ca_list__status` INT(10)  UNSIGNED NULL DEFAULT 2,
+                    `isys_catg_jdisc_ca_list__description` TEXT collate utf8_unicode_ci NULL DEFAULT NULL
+                    ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+                    ALTER TABLE `isys_catg_jdisc_ca_list`
+                    ADD CONSTRAINT `isys_catg_jdisc_ca_list__isys_obj__id__FK` FOREIGN KEY (`isys_catg_jdisc_ca_list__isys_obj__id`) REFERENCES `isys_obj` (`isys_obj__id`) ON DELETE CASCADE ON UPDATE CASCADE,
+                    ADD CONSTRAINT `isys_catg_jdisc_ca_list__isys_jdisc_ca_type__id__FK` FOREIGN KEY (`isys_catg_jdisc_ca_list__isys_jdisc_ca_type__id`) REFERENCES `isys_jdisc_ca_type` (`isys_jdisc_ca_type__id`) ON DELETE CASCADE ON UPDATE CASCADE;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>18</id>
+            <check ident="C_VALUE_EXISTS">
+                SELECT isysgui_catg__id FROM isysgui_catg WHERE isysgui_catg__const = 'C__CATG__JDISC_CA';
+            </check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    INSERT INTO `isysgui_catg` (`isysgui_catg__id`, `isysgui_catg__isys_tree_group__id`, `isysgui_catg__title`, `isysgui_catg__description`, `isysgui_catg__const`, `isysgui_catg__source_table`, `isysgui_catg__class_name`, `isysgui_catg__sort`, `isysgui_catg__parent`, `isysgui_catg__list_multi_value`, `isysgui_catg__property`, `isysgui_catg__status`, `isysgui_catg__standard`, `isysgui_catg__overview`)
+                    VALUES (NULL, NULL, 'LC__CMDB__CATG__JDISC_CUSTOM_ATTRIBUTES', NULL, 'C__CATG__JDISC_CA', 'isys_catg_jdisc_ca', 'isys_cmdb_dao_category_g_jdisc_ca', '5', NULL, '1', '0', '2', '0', '0');
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>19</id>
+            <title>Adding field: vlan import</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_profile, isys_jdisc_profile__import_all_vlans</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_profile ADD isys_jdisc_profile__import_all_vlans TINYINT ( 1 ) UNSIGNED NULL DEFAULT NULL;
+                    UPDATE isys_jdisc_profile SET isys_jdisc_profile__import_all_vlans = 1;
+                </exec>
+            </sql>
+        </query>
+        <query>
+            <id>20</id>
+            <title>Adding field: isys_jdisc_object_type_assignment__object_location__id</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_object_type_assignment, isys_jdisc_object_type_assignment__object_location__id</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE `isys_jdisc_object_type_assignment` ADD
+                    isys_jdisc_object_type_assignment__object_location__id INT(10) UNSIGNED NULL DEFAULT NULL;
+
+                    ALTER TABLE `isys_jdisc_object_type_assignment`
+                    ADD CONSTRAINT `isys_jdisc_object_type_assignment__object_location__id`
+                    FOREIGN KEY (`isys_jdisc_object_type_assignment__object_location__id`) REFERENCES `isys_obj` (`isys_obj__id`) ON DELETE CASCADE ON UPDATE CASCADE;
+                </exec>
+            </sql>
+        </query>		<query>
+            <id>21</id>
+            <title>Adding new field in jdisc configuration</title>
+            <check ident="C_ADD_FIELD_IF_TABLE_EXISTS">isys_jdisc_db, isys_jdisc_db__discovery_username</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_db
+                    ADD isys_jdisc_db__discovery_username VARCHAR(255) NULL DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>22</id>
+            <title>Adding new field in jdisc configuration</title>
+            <check ident="C_ADD_FIELD_IF_TABLE_EXISTS">isys_jdisc_db, isys_jdisc_db__discovery_password</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_db
+                    ADD isys_jdisc_db__discovery_password VARCHAR(255) NULL DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>23</id>
+            <title>Adding new field in jdisc configuration</title>
+            <check ident="C_ADD_FIELD_IF_TABLE_EXISTS">isys_jdisc_db, isys_jdisc_db__discovery_port</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_db
+                    ADD isys_jdisc_db__discovery_port INT(10) NULL DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>24</id>
+            <title>Adding new field in jdisc configuration</title>
+            <check ident="C_ADD_FIELD_IF_TABLE_EXISTS">isys_jdisc_db, isys_jdisc_db__discovery_protocol</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_db
+                    ADD isys_jdisc_db__discovery_protocol VARCHAR(255) NULL DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>25</id>
+            <title>New JDisc profile for 'Network'.</title>
+            <check ident="C_VALUE_EXISTS">SELECT isys_jdisc_profile__id FROM isys_jdisc_profile WHERE isys_jdisc_profile__title = 'Network';</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+
+                    SET @DEFAULT_SERVER = (SELECT isys_jdisc_db__id FROM isys_jdisc_db WHERE isys_jdisc_db__default_server = '1');
+
+                    SET @SWITCH = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__SWITCH');
+                    SET @FC_SWITCH = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__FC_SWITCH');
+                    SET @PATCHPANEL = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__PATCH_PANEL');
+                    SET @ROUTER = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__ROUTER');
+                    SET @SWITCH_CHASSIS = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__SWITCH_CHASSIS');
+
+                    INSERT INTO `isys_jdisc_profile` (`isys_jdisc_profile__title`, `isys_jdisc_profile__description`, `isys_jdisc_profile__categories`, `isys_jdisc_profile__import_all_software`, `isys_jdisc_profile__import_all_networks`, `isys_jdisc_profile__import_all_clusters`, `isys_jdisc_profile__import_all_blade_connections`, `isys_jdisc_profile__jdisc_server`, `isys_jdisc_profile__import_custom_attributes`, `isys_jdisc_profile__import_all_vlans`) VALUES
+                    ('Network', '', 'a:4:{i:0;i:47;i:1;i:40;i:2;i:2;i:3;i:39;}', 0, 1, 1, 1, @DEFAULT_SERVER, 1, 1);
+
+                    SET @PROFILE = (SELECT LAST_INSERT_ID());
+
+                    INSERT INTO `isys_jdisc_object_type_assignment` (`isys_jdisc_object_type_assignment__isys_jdisc_profile__id`, `isys_jdisc_object_type_assignment__jdisc_type`, `isys_jdisc_object_type_assignment__jdisc_type_customized`, `isys_jdisc_object_type_assignment__jdisc_os`, `isys_jdisc_object_type_assignment__jdisc_os_customized`, `isys_jdisc_object_type_assignment__isys_obj_type__id`, `isys_jdisc_object_type_assignment__port_filter`, `isys_jdisc_object_type_assignment__port_filter_type`, `isys_jdisc_object_type_assignment__object_location__id`) VALUES
+                    (@PROFILE, 153, '', NULL, '', @FC_SWITCH, '[""]', '["0"]', NULL),
+                    (@PROFILE, 165, '', NULL, '', @FC_SWITCH, '[""]', '["0"]', NULL),
+                    (@PROFILE, 22, '', NULL, '', @PATCHPANEL, '[""]', '["0"]', NULL),
+                    (@PROFILE, 2, '', NULL, '', @ROUTER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 50, '', NULL, '*IOS*', @ROUTER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 14, '', NULL, '', @SWITCH, '[""]', '["0"]', NULL),
+                    (@PROFILE, 5, '', NULL, '', @ROUTER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 9, '', NULL, '', @ROUTER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 19, '', NULL, '', @SWITCH, '[""]', '["0"]', NULL),
+                    (@PROFILE, 20, '', NULL, '', @SWITCH, '[""]', '["0"]', NULL),
+                    (@PROFILE, 4, '', NULL, '', @SWITCH_CHASSIS, '[""]', '["0"]', NULL),
+                    (@PROFILE, 166, '', NULL, '', @SWITCH, '[""]', '["0"]', NULL),
+                    (@PROFILE, 167, '', NULL, '', @SWITCH, '[""]', '["0"]', NULL),
+                    (@PROFILE, 17, '', NULL, '', @SWITCH, '[""]', '["0"]', NULL),
+                    (@PROFILE, 18, '', NULL, '', @SWITCH, '[""]', '["0"]', NULL),
+                    (@PROFILE, 3, '', NULL, '', @SWITCH, '[""]', '["0"]', NULL),
+                    (@PROFILE, 16, '', NULL, '', @SWITCH, '[""]', '["0"]', NULL);
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>26</id>
+            <title>New JDisc profile for 'Server and Clients'.</title>
+            <check ident="C_VALUE_EXISTS">SELECT isys_jdisc_profile__id FROM isys_jdisc_profile WHERE isys_jdisc_profile__title = 'Server and Clients';</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+
+                    SET @DEFAULT_SERVER = (SELECT isys_jdisc_db__id FROM isys_jdisc_db WHERE isys_jdisc_db__default_server = '1');
+
+                    SET @CLIENT = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__CLIENT');
+                    SET @SERVER = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__SERVER');
+                    SET @BLADE_CHASSIS = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__BLADE_CHASSIS');
+                    SET @BLADE_SERVER = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__BLADE_SERVER');
+
+                    INSERT INTO `isys_jdisc_profile` (`isys_jdisc_profile__title`, `isys_jdisc_profile__description`, `isys_jdisc_profile__categories`, `isys_jdisc_profile__import_all_software`, `isys_jdisc_profile__import_all_networks`, `isys_jdisc_profile__import_all_clusters`, `isys_jdisc_profile__import_all_blade_connections`, `isys_jdisc_profile__jdisc_server`, `isys_jdisc_profile__import_custom_attributes`, `isys_jdisc_profile__import_all_vlans`) VALUES
+                    ('Server and Clients', '', 'a:12:{i:0;i:4;i:1;i:65;i:2;i:35;i:3;i:47;i:4;i:40;i:5;i:42;i:6;i:8;i:7;i:2;i:8;i:39;i:9;i:12;i:10;i:5;i:11;i:36;}', 1, 1, 1, 1, @DEFAULT_SERVER, 1, 1);
+
+                    SET @PROFILE = (SELECT LAST_INSERT_ID());
+
+                    INSERT INTO `isys_jdisc_object_type_assignment` (`isys_jdisc_object_type_assignment__isys_jdisc_profile__id`, `isys_jdisc_object_type_assignment__jdisc_type`, `isys_jdisc_object_type_assignment__jdisc_type_customized`, `isys_jdisc_object_type_assignment__jdisc_os`, `isys_jdisc_object_type_assignment__jdisc_os_customized`, `isys_jdisc_object_type_assignment__isys_obj_type__id`, `isys_jdisc_object_type_assignment__port_filter`, `isys_jdisc_object_type_assignment__port_filter_type`, `isys_jdisc_object_type_assignment__object_location__id`) VALUES
+                    (@PROFILE, 51, '', NULL, '', @CLIENT, '[""]', '["0"]', NULL),
+                    (@PROFILE, 50, '', NULL, '*Windows XP*', @CLIENT, '[""]', '["0"]', NULL),
+                    (@PROFILE, 50, '', NULL, '*Windows 7*', @CLIENT, '[""]', '["0"]', NULL),
+                    (@PROFILE, 50, '', NULL, '*Windows Server*', @SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 50, '', NULL, '*Linux*', @SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 50, '', NULL, '*Debian*', @SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 50, '', NULL, '*Ubuntu*', @SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 50, '', NULL, '*Redhat*', @SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 50, '', NULL, '*SuSE*', @SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 15, '', NULL, '', @SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 55, '', NULL, '', @CLIENT, '[""]', '["0"]', NULL),
+                    (@PROFILE, 61, '', NULL, '', @SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 58, '', NULL, '', @CLIENT, '[""]', '["0"]', NULL),
+                    (@PROFILE, 57, '', NULL, '', @CLIENT, '[""]', '["0"]', NULL),
+                    (@PROFILE, 86, '', NULL, '', @SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 13, '', NULL, '', @SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 104, '', NULL, '', @SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 52, '', NULL, '', @SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 54, '', NULL, '', @BLADE_SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 70, '', NULL, '', @SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 53, '', NULL, '', @BLADE_CHASSIS, '[""]', '["0"]', NULL),
+                    (@PROFILE, 71, '', NULL, '', @SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 66, '', NULL, '', @CLIENT, '[""]', '["0"]', NULL),
+                    (@PROFILE, 62, '', NULL, '', @SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 73, '', NULL, '', @CLIENT, '[""]', '["0"]', NULL),
+                    (@PROFILE, 59, '', NULL, '', @CLIENT, '[""]', '["0"]', NULL),
+                    (@PROFILE, 63, '', NULL, '', @CLIENT, '[""]', '["0"]', NULL),
+                    (@PROFILE, 84, '', NULL, '', @CLIENT, '[""]', '["0"]', NULL),
+                    (@PROFILE, 67, '', NULL, '', @CLIENT, '[""]', '["0"]', NULL);
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>27</id>
+            <title>New JDisc profile for 'Others'.</title>
+            <check ident="C_VALUE_EXISTS">SELECT isys_jdisc_profile__id FROM isys_jdisc_profile WHERE isys_jdisc_profile__title = 'Others';</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    SET @DEFAULT_SERVER = (SELECT isys_jdisc_db__id FROM isys_jdisc_db WHERE isys_jdisc_db__default_server = '1');
+
+                    SET @ENCLOSURE = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__ENCLOSURE');
+                    SET @SAN = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__SAN');
+                    SET @PRINTER = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__PRINTER');
+                    SET @MONITOR = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__MONITOR');
+                    SET @APPLIANCE = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__APPLIANCE');
+                    SET @TELEPHONE_SYSTEM = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__TELEPHONE_SYSTEM');
+                    SET @ACCESS_POINT = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__ACCESS_POINT');
+                    SET @PHONE = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__PHONE');
+                    SET @AMPLIFIER = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__AMPLIFIER');
+                    SET @PDU = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__PDU');
+                    SET @UPS = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__UPS');
+                    SET @CLUSTER_SERVICE = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__CLUSTER_SERVICE');
+                    SET @VIRTUAL_CLIENT = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__VIRTUAL_CLIENT');
+                    SET @VIRTUAL_HOST = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__VIRTUAL_HOST');
+                    SET @VIRTUAL_SERVER = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__VIRTUAL_SERVER');
+                    SET @BLADE_CHASSIS = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__BLADE_CHASSIS');
+
+                    INSERT INTO `isys_jdisc_profile` (`isys_jdisc_profile__title`, `isys_jdisc_profile__description`, `isys_jdisc_profile__categories`, `isys_jdisc_profile__import_all_software`, `isys_jdisc_profile__import_all_networks`, `isys_jdisc_profile__import_all_clusters`, `isys_jdisc_profile__import_all_blade_connections`, `isys_jdisc_profile__jdisc_server`, `isys_jdisc_profile__import_custom_attributes`, `isys_jdisc_profile__import_all_vlans`) VALUES
+                    ('Others', '', 'a:12:{i:0;i:4;i:1;i:65;i:2;i:35;i:3;i:47;i:4;i:40;i:5;i:42;i:6;i:8;i:7;i:2;i:8;i:39;i:9;i:12;i:10;i:5;i:11;i:36;}', 1, 1, 1, 1, @DEFAULT_SERVER, 1, 1);
+
+                    SET @PROFILE = (SELECT LAST_INSERT_ID());
+
+                    INSERT INTO `isys_jdisc_object_type_assignment` (`isys_jdisc_object_type_assignment__isys_jdisc_profile__id`, `isys_jdisc_object_type_assignment__jdisc_type`, `isys_jdisc_object_type_assignment__jdisc_type_customized`, `isys_jdisc_object_type_assignment__jdisc_os`, `isys_jdisc_object_type_assignment__jdisc_os_customized`, `isys_jdisc_object_type_assignment__isys_obj_type__id`, `isys_jdisc_object_type_assignment__port_filter`, `isys_jdisc_object_type_assignment__port_filter_type`, `isys_jdisc_object_type_assignment__object_location__id`) VALUES
+                    (@PROFILE, 6, '', NULL, '', @ACCESS_POINT, '[""]', '["0"]', NULL),
+                    (@PROFILE, 500, '', NULL, '', @APPLIANCE, '[""]', '["0"]', NULL),
+                    (@PROFILE, 159, '', NULL, '', @APPLIANCE, '[""]', '["0"]', NULL),
+                    (@PROFILE, 251, '', NULL, '', @BLADE_CHASSIS, '[""]', '["0"]', NULL),
+                    (@PROFILE, 1000, '', NULL, '', @CLUSTER_SERVICE, '[""]', '["0"]', NULL),
+                    (@PROFILE, 50, '', NULL, '*VMware*', @VIRTUAL_HOST, '[""]', '["0"]', NULL),
+                    (@PROFILE, 76, '', NULL, '', @VIRTUAL_SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 77, '', NULL, '', @VIRTUAL_SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 100, '', NULL, '', @PRINTER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 201, '', NULL, '', @PHONE, '[""]', '["0"]', NULL),
+                    (@PROFILE, 200, '', NULL, '', @PHONE, '[""]', '["0"]', NULL),
+                    (@PROFILE, 202, '', NULL, '', @TELEPHONE_SYSTEM, '[""]', '["0"]', NULL),
+                    (@PROFILE, 79, '', NULL, '', @VIRTUAL_SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 72, '', NULL, '', @VIRTUAL_SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 700, '', NULL, '', @MONITOR, '[""]', '["0"]', NULL),
+                    (@PROFILE, 168, '', NULL, '', @SAN, '[""]', '["0"]', NULL),
+                    (@PROFILE, 83, '', NULL, '', @VIRTUAL_SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 352, '', NULL, '', @PDU, '[""]', '["0"]', NULL),
+                    (@PROFILE, 350, '', NULL, '', @UPS, '[""]', '["0"]', NULL),
+                    (@PROFILE, 353, '', NULL, '', @UPS, '[""]', '["0"]', NULL),
+                    (@PROFILE, 354, '', NULL, '', @UPS, '[""]', '["0"]', NULL),
+                    (@PROFILE, 503, '', NULL, '', @APPLIANCE, '[""]', '["0"]', NULL),
+                    (@PROFILE, 101, '', NULL, '', @PRINTER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 106, '', NULL, '', @MONITOR, '[""]', '["0"]', NULL),
+                    (@PROFILE, 400, '', NULL, '', @ENCLOSURE, '[""]', '["0"]', NULL),
+                    (@PROFILE, 12, '', NULL, '', @AMPLIFIER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 501, '', NULL, '', @APPLIANCE, '[""]', '["0"]', NULL),
+                    (@PROFILE, 150, '', NULL, '', @SAN, '[""]', '["0"]', NULL),
+                    (@PROFILE, 160, '', NULL, '', @SAN, '[""]', '["0"]', NULL),
+                    (@PROFILE, 157, '', NULL, '', @SAN, '[""]', '["0"]', NULL),
+                    (@PROFILE, 162, '', NULL, '', @SAN, '[""]', '["0"]', NULL),
+                    (@PROFILE, 151, '', NULL, '', @SAN, '[""]', '["0"]', NULL),
+                    (@PROFILE, 351, '', NULL, '', @UPS, '[""]', '["0"]', NULL),
+                    (@PROFILE, 1001, '', NULL, '', @CLUSTER_SERVICE, '[""]', '["0"]', NULL),
+                    (@PROFILE, 600, '', NULL, '', @PHONE, '[""]', '["0"]', NULL),
+                    (@PROFILE, 602, '', NULL, '', @PHONE, '[""]', '["0"]', NULL),
+                    (@PROFILE, 601, '', NULL, '', @PHONE, '[""]', '["0"]', NULL),
+                    (@PROFILE, 68, '', NULL, '', @VIRTUAL_CLIENT, '[""]', '["0"]', NULL),
+                    (@PROFILE, 82, '', NULL, '', @VIRTUAL_SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 81, '', NULL, '', @VIRTUAL_CLIENT, '[""]', '["0"]', NULL),
+                    (@PROFILE, 69, '', NULL, '', @VIRTUAL_SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 80, '', NULL, '', @APPLIANCE, '[""]', '["0"]', NULL),
+                    (@PROFILE, 505, '', NULL, '', @APPLIANCE, '[""]', '["0"]', NULL),
+                    (@PROFILE, 502, '', NULL, '', @APPLIANCE, '[""]', '["0"]', NULL),
+                    (@PROFILE, 504, '', NULL, '', @APPLIANCE, '[""]', '["0"]', NULL),
+                    (@PROFILE, 78, '', NULL, '', @VIRTUAL_SERVER, '[""]', '["0"]', NULL),
+                    (@PROFILE, 74, '', NULL, '', @VIRTUAL_SERVER, '[""]', '["0"]', NULL);
+                </exec>
+            </sql>
+        </query>
+        <query>
+            <id>28</id>
+            <check ident="C_VALUE_EXISTS">
+                SELECT isysgui_catg__id FROM isysgui_catg WHERE isysgui_catg__const = 'C__CATG__JDISC_DISCOVERY';
+            </check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    INSERT INTO `isysgui_catg` (`isysgui_catg__id` ,`isysgui_catg__isys_tree_group__id`, `isysgui_catg__title`, `isysgui_catg__description`, `isysgui_catg__const`, `isysgui_catg__source_table`, `isysgui_catg__class_name`, `isysgui_catg__sort`, `isysgui_catg__parent`, `isysgui_catg__list_multi_value`, `isysgui_catg__property`, `isysgui_catg__status`, `isysgui_catg__standard`, `isysgui_catg__overview`)
+                    VALUES (NULL, NULL, 'LC__CMDB__CATG__JDISC_DISCOVERY', NULL, 'C__CATG__JDISC_DISCOVERY', 'isys_catg_virtual', 'isys_cmdb_dao_category_g_jdisc_discovery', '5', NULL, '0', '0', '2', '0', '0');
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>29</id>
+            <title>Adding field: isys_jdisc_profile__chassis_module__isys_obj_type__id</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_profile, isys_jdisc_profile__isys_obj_type__id__chassis_module</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE `isys_jdisc_profile` ADD isys_jdisc_profile__isys_obj_type__id__chassis_module INT(10) UNSIGNED NULL DEFAULT NULL;
+
+                    ALTER TABLE `isys_jdisc_profile`
+                    ADD CONSTRAINT `isys_jdisc_profile__isys_obj_type__id__chassis_module`
+                    FOREIGN KEY (`isys_jdisc_profile__isys_obj_type__id__chassis_module`) REFERENCES `isys_obj_type` (`isys_obj_type__id`) ON DELETE SET NULL ON UPDATE CASCADE;
+                </exec>
+            </sql>
+        </query>
+
+        <!-- See ID-4458 -->
+        <query>
+            <id>30</id>
+            <title>Adding field isys_jdisc_profile__chassis_module_update_objtype in the jdisc profile</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_profile, isys_jdisc_profile__chassis_module_update_objtype</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_profile ADD isys_jdisc_profile__chassis_module_update_objtype TINYINT(1) NULL DEFAULT 0;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>31</id>
+            <check ident="C_CREATE_TABLE">isys_jdisc_device_type</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    CREATE TABLE `isys_jdisc_device_type` (
+                    `isys_jdisc_device_type__id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+                    `isys_jdisc_device_type__title` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+                    `isys_jdisc_device_type__description` text COLLATE utf8_unicode_ci DEFAULT NULL,
+                    `isys_jdisc_device_type__const` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+                    `isys_jdisc_device_type__sort` int(10) unsigned DEFAULT NULL,
+                    `isys_jdisc_device_type__status` int(10) unsigned DEFAULT 2,
+                    `isys_jdisc_device_type__property` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+                    PRIMARY KEY (`isys_jdisc_device_type__id`),
+                    KEY `isys_jdisc_device_type__title` (`isys_jdisc_device_type__title`),
+                    KEY `isys_jdisc_device_type__const` (`isys_jdisc_device_type__const`),
+                    KEY `isys_jdisc_device_type__status` (`isys_jdisc_device_type__status`)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>32</id>
+            <title>Adding field isys_jdisc_profile__import_software_licences in the jdisc profile</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_profile, isys_jdisc_profile__import_software_licences</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_profile ADD isys_jdisc_profile__import_software_licences TINYINT(1) UNSIGNED NULL DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>33</id>
+            <title>Adding field isys_jdisc_profile__import_type_interfaces in the jdisc profile</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_profile, isys_jdisc_profile__import_type_interfaces</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_profile ADD isys_jdisc_profile__import_type_interfaces TINYINT(1) UNSIGNED NULL DEFAULT 2;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>34</id>
+            <title>Adding field isys_jdisc_profile__cmdb_status in the jdisc profile</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_profile, isys_jdisc_profile__cmdb_status</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_profile ADD isys_jdisc_profile__cmdb_status INT(10) UNSIGNED NULL DEFAULT NULL;
+
+                    ALTER TABLE `isys_jdisc_profile`
+                    ADD CONSTRAINT `isys_jdisc_profile__cmdb_status` FOREIGN KEY (`isys_jdisc_profile__cmdb_status`)
+                    REFERENCES `isys_cmdb_status` (`isys_cmdb_status__id`) ON DELETE SET NULL ON UPDATE CASCADE;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>35</id>
+            <title>Adding field isys_jdisc_profile__use_default_templates in the jdisc profile</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_profile, isys_jdisc_profile__use_default_templates</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_profile ADD isys_jdisc_profile__use_default_templates TINYINT(1) UNSIGNED NULL DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>36</id>
+            <title>Adding field isys_jdisc_profile__software_filter in the jdisc profile</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_profile, isys_jdisc_profile__software_filter</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_profile ADD isys_jdisc_profile__software_filter TEXT COLLATE utf8_unicode_ci DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>37</id>
+            <title>Adding field isys_jdisc_profile__software_filter_type in the jdisc profile</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_profile, isys_jdisc_profile__software_filter_type</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_profile ADD isys_jdisc_profile__software_filter_type TINYINT(1) DEFAULT 0;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>38</id>
+            <title>Adding field isys_jdisc_profile__isys_obj_match__id in the jdisc profile</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_profile, isys_jdisc_profile__isys_obj_match__id</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_profile ADD isys_jdisc_profile__isys_obj_match__id INT(10) UNSIGNED NULL DEFAULT NULL;
+
+                    ALTER TABLE `isys_jdisc_profile`
+                    ADD CONSTRAINT `isys_jdisc_profile__isys_obj_match__id` FOREIGN KEY (`isys_jdisc_profile__isys_obj_match__id`)
+                    REFERENCES `isys_obj_match` (`isys_obj_match__id`) ON DELETE SET NULL ON UPDATE CASCADE;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>39</id>
+            <title>Adding field isys_jdisc_profile__update_objtype in the jdisc profile</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_profile, isys_jdisc_profile__update_objtype</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_profile ADD isys_jdisc_profile__update_objtype TINYINT(1) UNSIGNED DEFAULT 1;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>40</id>
+            <title>Adding field isys_jdisc_profile__update_obj_title in the jdisc profile</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_profile, isys_jdisc_profile__update_obj_title</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_profile ADD isys_jdisc_profile__update_obj_title TINYINT(1) UNSIGNED DEFAULT 0;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>41</id>
+            <title>Adding field isys_jdisc_db__title in the jdisc configuration</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_db, isys_jdisc_db__title</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_db ADD isys_jdisc_db__title VARCHAR(255) NULL DEFAULT NULL AFTER `isys_jdisc_db__id`;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>42</id>
+            <title>Adding field isys_jdisc_profile__software_obj_title in the jdisc profile</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_profile, isys_jdisc_profile__software_obj_title</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_profile ADD isys_jdisc_profile__software_obj_title TINYINT(1) UNSIGNED DEFAULT 0 AFTER `isys_jdisc_profile__software_filter_type`;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>43</id>
+            <title>Adding field isys_jdisc_db__discovery_timeout in the jdisc server configuration</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_db, isys_jdisc_db__discovery_timeout</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_db ADD isys_jdisc_db__discovery_timeout int(10) UNSIGNED NULL DEFAULT 60;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>44</id>
+            <title>Adding field isys_jdisc_db__discovery_import_retries in the jdisc server configuration</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_db, isys_jdisc_db__discovery_import_retries</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_db ADD isys_jdisc_db__discovery_import_retries tinyint(1) UNSIGNED NULL DEFAULT 1;
+                </exec>
+            </sql>
+        </query>
+
+    </queries>
+</isys>

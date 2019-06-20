@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE isys [
+        <!ELEMENT isys (info|queries)*>
+        <!ELEMENT info (title|version|requirement|directory|revision|release)*>
+        <!ELEMENT title (#PCDATA)>
+        <!ELEMENT version (#PCDATA)>
+        <!ELEMENT requirement (revision|version)*>
+        <!ELEMENT revision (#PCDATA)>
+        <!ELEMENT directory (#PCDATA)>
+        <!ELEMENT release (#PCDATA)>
+        <!ELEMENT queries (query)*>
+        <!ELEMENT query (id|title|check|errmsg|sql)*>
+        <!ELEMENT id (#PCDATA)>
+        <!ELEMENT check (#PCDATA)>
+        <!ATTLIST check ident CDATA #REQUIRED>
+        <!ELEMENT errmsg (#PCDATA)>
+        <!ELEMENT sql (exec)*>
+        <!ELEMENT exec (#PCDATA)>
+        <!ATTLIST exec ident CDATA #REQUIRED>
+        ]>
+<isys>
+    <info>
+        <title>i-doit v1.12.4</title>
+        <version>1.12.4</version>
+        <requirement>
+            <revision>201811200</revision>
+            <version>1.12</version>
+        </requirement>
+        <directory>v1.12.4</directory>
+        <!--
+        LF: Changed this to: <year>1<major><minor> with major and minor beeing a two digit number:
+        201711000 => 2017 1.10.00
+        201811221 => 2018 1.12.21
+        ...
+        -->
+        <revision>201911204</revision>
+        <release>2019-05-20</release>
+    </info>
+    <queries>
+        <query>
+            <title>Add rights for "object browser" configuration to administrators.</title>
+            <check ident="C_VALUE_EXISTS">
+                SELECT isys_settings__key
+                FROM isys_settings
+                WHERE isys_settings__key = 'report.csv-export-delimiter'
+                LIMIT 1;
+            </check>
+            <sql>
+                <exec ident="false">
+                    UPDATE isys_settings
+                    SET isys_settings__key = 'system.csv-export-delimiter'
+                    WHERE isys_settings__key LIKE 'report.csv-export-delimiter';
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <title>Adding isys_mandator__license_objects</title>
+            <check ident="C_ADD_FIELD">isys_mandator, isys_mandator__license_objects</check>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_mandator ADD isys_mandator__license_objects int UNSIGNED DEFAULT 0;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <title>Adding isys_licence__license_objects</title>
+            <check ident="C_ADD_FIELD">isys_licence, isys_licence__license_objects</check>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_licence ADD isys_licence__license_objects int UNSIGNED DEFAULT 0;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <title>Modify isys_licence__key</title>
+            <check ident="C_CHANGE_FIELD">isys_licence, isys_licence__key</check>
+            <sql>
+                <exec ident="true">
+                    ALTER TABLE isys_licence MODIFY isys_licence__key LONGTEXT;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <title>Modify isys_licence__data</title>
+            <check ident="C_CHANGE_FIELD">isys_licence, isys_licence__data</check>
+            <sql>
+                <exec ident="true">
+                    ALTER TABLE isys_licence MODIFY isys_licence__data LONGTEXT;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <title>Create table isys_licence_communication</title>
+            <check ident="C_CREATE_TABLE">isys_licence_communication</check>
+            <sql>
+                <exec ident="false">
+                    CREATE TABLE `isys_licence_communication` (
+                    `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+                    `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    `status` int(3) unsigned NOT NULL,
+                    `licenses_count` int(11) unsigned NOT NULL,
+                    PRIMARY KEY (`id`),
+                    KEY `created` (`created`)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+                </exec>
+            </sql>
+        </query>
+    </queries>
+</isys>

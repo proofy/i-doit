@@ -41,7 +41,7 @@
         "symfony/console": "v3.3.18",
         "symfony/event-dispatcher": "^3.4",
         "symfony/filesystem": "^3.4",
-        "symfony/http-foundation": "v3.4.28",
+        "symfony/http-foundation": "v3.4.35",
         "symfony/lock": "^3.4",
         "symfony/options-resolver": "^3.4",
         "symfony/polyfill-iconv": "^1.11",
